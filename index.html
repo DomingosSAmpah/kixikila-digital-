@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-ao" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kixikila Digital | Gestão de Fundos</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#008751', dark: '#005e38', light: '#e6f3ed' },
+                        accent: { DEFAULT: '#D4AF37', dark: '#aa8c2c' },
+                        darkBg: '#09090b',
+                        darkCard: '#18181b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sidebar-item.active,
+        .mobile-item.active {
+            color: #008751;
+            font-weight: 800;
+        }
+        .sidebar-item.active {
+            background-color: #e6f3ed;
+            border-left: 4px solid #008751;
+        }
+        .dark .sidebar-item.active {
+            background-color: #1e1e1e;
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+        .dark .sidebar-item.active span {
+            color: #10b981;
+        }
+        .dark .mobile-item.active {
+            color: #10b981;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .ad-glow {
+            animation: adGlow 3s infinite alternate;
+        }
+        @keyframes adGlow {
+            from {
+                box-shadow: 0 0 5px rgba(0, 135, 81, 0.1);
+            }
+            to {
+                box-shadow: 0 0 15px rgba(0, 135, 81, 0.3);
+            }
+        }
+        .slider-track {
+            display: flex;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slide {
+            min-width: 100%;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: none;
+        }
+        .dark .notif-badge {
+            border-color: #18181b;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-darkBg text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
+
+    <div class="flex min-h-screen">
+        <!-- SIDEBAR DESKTOP -->
+        <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-zinc-800 flex-col z-40">
+            <div class="p-8 flex flex-col h-full">
+                <div class="flex items-center gap-3 mb-10">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg flex-shrink-0">
+                        <i data-lucide="wallet"></i>
+                    </div>
+                    <span id="sidebar-brand" class="text-xl font-black italic leading-tight">KIXIKILA<span class="text-primary not-italic">DIGITAL</span></span>
+                </div>
+                <nav class="space-y-2 flex-1">
+                    <button onclick="showSection('dashboard', this)" data-section="dashboard" class="sidebar-item active w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left">
+                        <i data-lucide="layout-grid" class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Início</span>
+                    </button>
+                    <button onclick="showSection('members', this)" data-section="members" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left">
+                        <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Membros</span>
+                    </button>
+                    <button onclick="showSection('payments', this)" data-section="payments" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left">
+                        <i data-lucide="plus-circle" class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Registrar</span>
+                    </button>
+                    <button onclick="showSection('history', this)" data-section="history" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left">
+                        <i data-lucide="list-checks" class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Extrato</span>
+                    </button>
+                    <button onclick="showSection('kixikila', this)" data-section="kixikila" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left">
+                        <i data-lucide="heart" class="w-5 h-5 flex-shrink-0"></i><span class="text-sm">Minha Kixikila</span>
+                    </button>
+                </nav>
+                <p class="text-[9px] text-gray-300 dark:text-zinc-600 font-bold uppercase tracking-widest mt-4 text-center">v2.0 • Gestão Inteligente</p>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:ml-64 p-4 lg:p-12 pb-32">
+            <div class="max-w-5xl mx-auto w-full">
+
+                <!-- HEADER -->
+                <header class="flex items-center justify-between mb-8 flex-wrap gap-4">
+                    <div>
+                        <h1 id="page-title" class="text-2xl lg:text-3xl font-black tracking-tight">Painel de Controlo</h1>
+                        <p id="current-date" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1"></p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="openModal('notif-modal')" class="relative w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm transition-transform active:scale-95">
+                            <i data-lucide="bell" class="w-5 h-5 text-zinc-500"></i>
+                            <div id="notif-dot" class="notif-badge"></div>
+                        </button>
+                        <button onclick="toggleDarkMode()" class="w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm transition-transform active:scale-95">
+                            <i data-lucide="sun-moon" class="w-5 h-5 text-primary"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- SLIDER DE ANÚNCIOS CLICÁVEIS -->
+                <div class="mb-8 overflow-hidden rounded-3xl border border-primary/20 ad-glow bg-primary/5 dark:bg-primary/10">
+                    <div id="ad-slider" class="slider-track">
+                        <a href="https://www.bancobai.ao" target="_blank" rel="noopener" class="slide p-6 gap-4 hover:bg-primary/5 transition-colors">
+                            <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white flex-shrink-0"><i data-lucide="external-link"></i></div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase text-primary">Banco BAI • Direto</h4>
+                                <p class="text-[10px] font-medium text-zinc-500">Abra sua conta e facilite os depósitos da sua Kixikila.</p>
+                            </div>
+                        </a>
+                        <a href="https://www.unitelmoney.ao" target="_blank" rel="noopener" class="slide p-6 gap-4 hover:bg-accent/5 transition-colors">
+                            <div class="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center text-white flex-shrink-0"><i data-lucide="smartphone"></i></div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase text-accent">Unitel Money</h4>
+                                <p class="text-[10px] font-medium text-zinc-500">Pague as suas quotas sem sair de casa e sem gastar dados.</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO DINÂMICO -->
+                <div id="content-area" class="animate-fade-in space-y-6">
+
+                    <!-- SEÇÃO: DASHBOARD -->
+                    <section id="dashboard-section" class="space-y-6">
+                        <!-- Card: Nome da Kixikila + Quota -->
+                        <div id="dashboard-kixikila-card" class="bg-white dark:bg-darkCard p-6 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary flex-shrink-0">
+                                    <i data-lucide="heart" class="w-7 h-7"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">A Minha Kixikila</p>
+                                    <h3 id="dashboard-kixikila-name" class="text-xl font-black">Kixikila Digital</h3>
+                                    <p class="text-xs text-zinc-500 font-medium">Quota: <span id="dashboard-quota-value" class="font-black text-primary">5.000 Kz</span></p>
+                                </div>
+                            </div>
+                            <button onclick="showSection('kixikila', document.querySelector('[data-section=kixikila]'))" class="text-[10px] font-black text-primary uppercase bg-primary/10 px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors whitespace-nowrap">
+                                Editar Dados
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-primary p-6 rounded-[2.5rem] text-white shadow-xl">
+                                <p class="text-white/60 text-[10px] font-black uppercase">Arrecadado</p>
+                                <h3 id="stat-total-arrecadado" class="text-3xl font-black mt-2">0 Kz</h3>
+                            </div>
+                            <div class="bg-white dark:bg-darkCard p-6 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm">
+                                <p class="text-accent text-[10px] font-black uppercase">Pago aos Membros</p>
+                                <h3 id="stat-total-pago" class="text-3xl font-black mt-2">0 Kz</h3>
+                            </div>
+                            <div class="bg-zinc-900 text-white p-6 rounded-[2.5rem] shadow-xl border-4 border-primary/20">
+                                <p class="text-primary text-[10px] font-black uppercase">Saldo em Caixa</p>
+                                <h3 id="stat-saldo-diferenca" class="text-3xl font-black mt-2">0 Kz</h3>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-darkCard p-8 rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div class="flex items-center gap-5">
+                                <div class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center text-accent flex-shrink-0"><i data-lucide="crown" class="w-8 h-8"></i></div>
+                                <div>
+                                    <h4 class="text-xs font-black text-gray-400 uppercase">Beneficiário da Vez</h4>
+                                    <p id="stat-proximo-beneficiario" class="text-2xl font-black">Aguardando...</p>
+                                </div>
+                            </div>
+                            <div class="text-center md:text-right">
+                                <p id="stat-fila-status" class="text-xs font-bold text-zinc-400">0 membros pagos</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SEÇÃO: MEMBROS -->
+                    <section id="members-section" class="hidden space-y-4">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <h2 class="text-xl font-black italic">MEMBROS ATIVOS</h2>
+                            <button onclick="openModal('member-modal')" class="bg-primary/10 text-primary px-4 py-2 rounded-xl font-black text-xs uppercase hover:bg-primary/20 transition-colors">Novo Membro +</button>
+                        </div>
+                        <div class="bg-white dark:bg-darkCard rounded-[2rem] border border-gray-100 dark:border-zinc-800 overflow-hidden">
+                            <table class="w-full text-left">
+                                <tbody id="members-table-body" class="divide-y divide-gray-50 dark:divide-zinc-800"></tbody>
+                            </table>
+                            <p id="members-empty" class="p-8 text-center text-gray-400 text-xs font-bold hidden">Nenhum membro registrado ainda.</p>
+                        </div>
+                    </section>
+
+                    <!-- SEÇÃO: REGISTRO -->
+                    <section id="payments-section" class="hidden max-w-lg mx-auto">
+                        <div class="bg-white dark:bg-darkCard p-8 rounded-[3rem] border border-gray-100 dark:border-zinc-800 shadow-2xl">
+                            <h2 class="text-xl font-black mb-8 text-center uppercase">Registrar Operação</h2>
+                            <form id="payment-form" class="space-y-5">
+                                <select id="pay-member" required class="w-full p-4 bg-gray-50 dark:bg-zinc-900 border-none rounded-2xl font-bold outline-none"></select>
+                                <select id="pay-type" class="w-full p-4 bg-gray-50 dark:bg-zinc-900 border-none rounded-2xl font-bold outline-none">
+                                    <option value="contribution">Depósito de Cota</option>
+                                    <option value="payout">Pagamento (Kixikila Paga)</option>
+                                </select>
+                                <div class="relative">
+                                    <input type="number" id="pay-amount" placeholder="Valor em Kwanza" required class="w-full p-4 bg-gray-50 dark:bg-zinc-900 border-none rounded-2xl font-black text-xl outline-none">
+                                    <button type="button" onclick="fillQuotaAmount()" class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-xl hover:bg-primary/20 transition-colors">Usar Quota</button>
+                                </div>
+                                <button type="submit" class="w-full py-5 bg-primary text-white font-black rounded-2xl shadow-xl hover:bg-primary-dark transition-colors active:scale-[0.98]">CONFIRMAR REGISTRO</button>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- SEÇÃO: EXTRATO -->
+                    <section id="history-section" class="hidden space-y-4">
+                        <h2 class="text-xl font-black italic uppercase">Histórico de Transações</h2>
+                        <div id="payments-history-list" class="space-y-3"></div>
+                        <p id="history-empty" class="text-center text-gray-400 text-xs font-bold py-8 hidden">Nenhuma transação registrada.</p>
+                    </section>
+
+                    <!-- SEÇÃO: MINHA KIXIKILA (CONFIGURAÇÕES) -->
+                    <section id="kixikila-section" class="hidden">
+                        <div class="max-w-md mx-auto bg-white dark:bg-darkCard p-8 rounded-[3rem] border border-gray-100 dark:border-zinc-800 space-y-6">
+                            <h2 class="text-xl font-black">Minha Kixikila</h2>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase -mt-4">Configure os dados principais do seu grupo</p>
+
+                            <!-- Nome da Kixikila -->
+                            <div class="p-5 bg-gray-50 dark:bg-zinc-900 rounded-2xl space-y-3">
+                                <label class="text-[10px] font-black text-gray-400 uppercase block">Nome do Grupo</label>
+                                <input type="text" id="kixikila-name-input" placeholder="Ex: Kixikila dos Amigos" class="w-full p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-2xl font-bold outline-none focus:border-primary transition-colors">
+                                <button onclick="saveKixikilaName()" class="w-full py-3 bg-primary text-white font-black rounded-xl text-xs uppercase hover:bg-primary-dark transition-colors">Guardar Nome</button>
+                            </div>
+
+                            <!-- Valor da Quota -->
+                            <div class="p-5 bg-gray-50 dark:bg-zinc-900 rounded-2xl space-y-3">
+                                <label class="text-[10px] font-black text-gray-400 uppercase block">Valor da Quota (Kz)</label>
+                                <input type="number" id="quota-value-input" placeholder="Ex: 5000" class="w-full p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-2xl font-bold text-xl outline-none focus:border-primary transition-colors">
+                                <button onclick="saveQuotaValue()" class="w-full py-3 bg-accent text-white font-black rounded-xl text-xs uppercase hover:bg-accent-dark transition-colors">Guardar Quota</button>
+                            </div>
+
+                            <!-- Tema -->
+                            <div class="p-5 bg-gray-50 dark:bg-zinc-900 rounded-2xl">
+                                <p class="text-[10px] font-black text-gray-400 uppercase">Modo de Exibição</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-bold">Tema Escuro</span>
+                                    <button onclick="toggleDarkMode()" class="text-primary font-black text-xs bg-primary/10 px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors">Alternar</button>
+                                </div>
+                            </div>
+
+                            <!-- Reset -->
+                            <div class="p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl">
+                                <p class="text-[10px] font-black text-red-400 uppercase">Zona de Perigo</p>
+                                <button onclick="resetSystem()" class="w-full text-left mt-2 text-red-500 font-bold text-xs hover:text-red-600 transition-colors">🗑️ Limpar todos os dados</button>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- NAVEGAÇÃO MOBILE -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 z-50 flex justify-around items-center h-20 px-2 shadow-2xl">
+        <button onclick="showSection('dashboard', this)" data-section="dashboard" class="mobile-item active flex flex-col items-center gap-1 w-full">
+            <i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold">Início</span>
+        </button>
+        <button onclick="showSection('members', this)" data-section="members" class="mobile-item flex flex-col items-center gap-1 w-full">
+            <i data-lucide="users" class="w-5 h-5"></i><span class="text-[10px] font-bold">Membros</span>
+        </button>
+        <button onclick="showSection('payments', this)" data-section="payments" class="relative -mt-10 flex flex-col items-center">
+            <div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white shadow-xl border-4 border-gray-50 dark:border-darkBg transition-transform active:scale-95">
+                <i data-lucide="plus" class="w-7 h-7"></i>
+            </div>
+        </button>
+        <button onclick="showSection('history', this)" data-section="history" class="mobile-item flex flex-col items-center gap-1 w-full">
+            <i data-lucide="activity" class="w-5 h-5"></i><span class="text-[10px] font-bold">Extrato</span>
+        </button>
+        <button onclick="showSection('kixikila', this)" data-section="kixikila" class="mobile-item flex flex-col items-center gap-1 w-full">
+            <i data-lucide="heart" class="w-5 h-5"></i><span class="text-[10px] font-bold">Kixikila</span>
+        </button>
+    </nav>
+
+    <!-- MODAIS -->
+    <div id="notif-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('notif-modal')"></div>
+        <div class="relative bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black">Notificações</h3>
+                <button onclick="clearNotifications()" class="text-red-400 text-[10px] font-bold hover:text-red-500 transition-colors">Limpar</button>
+            </div>
+            <div id="notif-list" class="space-y-4 max-h-[400px] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="member-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('member-modal')"></div>
+        <div class="relative bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 class="text-xl font-black mb-6">Novo Participante</h3>
+            <form id="member-form" class="space-y-4">
+                <input type="text" id="m-name" placeholder="Nome do Membro" required class="w-full p-4 bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl font-bold outline-none">
+                <button type="submit" class="w-full py-4 bg-primary text-white font-black rounded-2xl hover:bg-primary-dark transition-colors active:scale-[0.98]">SALVAR</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[120] transform translate-y-20 opacity-0 transition-all duration-500 pointer-events-none">
+        <div class="bg-zinc-900 text-white px-8 py-3 rounded-full shadow-2xl font-black text-[10px] uppercase tracking-widest"><span id="toast-msg">Sucesso!</span></div>
+    </div>
+
+    <script>
+        let state = {
+            members: [],
+            payments: [],
+            notifications: [],
+            darkMode: false,
+            kixikilaName: '',
+            quotaValue: 5000
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDB();
+            renderAll();
+            initSlider();
+            updateKixikilaInputs();
+            updateBranding();
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-AO', { weekday: 'long',
+                day: 'numeric', month: 'long' });
+            lucide.createIcons();
+        });
+
+        function initSlider() {
+            const track = document.getElementById('ad-slider');
+            let index = 0;
+            setInterval(() => {
+                index = (index + 1) % 2;
+                track.style.transform = `translateX(-${index * 100}%)`;
+            }, 5000);
+        }
+
+        function addNotification(text) {
+            state.notifications.unshift({ id: Date.now(), text, time: new Date().toLocaleTimeString('pt-AO', { hour: '2-digit',
+                    minute: '2-digit' }) });
+            saveDB();
+        }
+
+        function showSection(id, clickedElement) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            const section = document.getElementById(`${id}-section`);
+            if (section) section.classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-item, .mobile-item').forEach(el => el.classList.remove('active'));
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            } else {
+                const fallback = document.querySelector(`[data-section="${id}"]`);
+                if (fallback) fallback.classList.add('active');
+            }
+
+            const titles = {
+                dashboard: 'Painel de Controlo',
+                members: 'Membros do Grupo',
+                payments: 'Registrar Operação',
+                history: 'Histórico de Transações',
+                kixikila: 'Minha Kixikila'
+            };
+            document.getElementById('page-title').innerText = titles[id] || 'Painel de Controlo';
+            if (id === 'dashboard') {
+                updateBranding();
+            }
+            lucide.createIcons();
+        }
+
+        function toggleDarkMode() {
+            state.darkMode = !state.darkMode;
+            document.documentElement.classList.toggle('dark');
+            saveDB();
+            showToast(state.darkMode ? 'Modo escuro ativado' : 'Modo claro ativado');
+        }
+
+        function updateKixikilaInputs() {
+            document.getElementById('kixikila-name-input').value = state.kixikilaName || '';
+            document.getElementById('quota-value-input').value = state.quotaValue || 5000;
+        }
+
+        function updateBranding() {
+            const name = state.kixikilaName || 'Kixikila Digital';
+            document.getElementById('dashboard-kixikila-name').innerText = name;
+            document.getElementById('dashboard-quota-value').innerText = (state.quotaValue || 5000).toLocaleString() +
+                ' Kz';
+            const sidebarBrand = document.getElementById('sidebar-brand');
+            if (sidebarBrand && state.kixikilaName) {
+                sidebarBrand.innerHTML =
+                    `${state.kixikilaName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`;
+            } else if (sidebarBrand && !state.kixikilaName) {
+                sidebarBrand.innerHTML = 'KIXIKILA<span class="text-primary not-italic">DIGITAL</span>';
+            }
+            document.title = (state.kixikilaName || 'Kixikila Digital') + ' | Gestão de Fundos';
+        }
+
+        function saveKixikilaName() {
+            const input = document.getElementById('kixikila-name-input');
+            const name = input.value.trim();
+            if (!name) {
+                showToast('Digite um nome válido!');
+                return;
+            }
+            state.kixikilaName = name;
+            saveDB();
+            updateBranding();
+            showToast('Nome da Kixikila atualizado!');
+        }
+
+        function saveQuotaValue() {
+            const input = document.getElementById('quota-value-input');
+            const value = parseFloat(input.value);
+            if (isNaN(value) || value <= 0) {
+                showToast('Digite um valor válido!');
+                return;
+            }
+            state.quotaValue = value;
+            saveDB();
+            updateBranding();
+            showToast('Valor da quota atualizado!');
+        }
+
+        function fillQuotaAmount() {
+            const amountInput = document.getElementById('pay-amount');
+            amountInput.value = state.quotaValue || 5000;
+            amountInput.focus();
+            showToast('Quota preenchida: ' + (state.quotaValue || 5000).toLocaleString() + ' Kz');
+        }
+
+        function renderAll() {
+            const contributions = state.payments.filter(p => p.type === 'contribution').reduce((a, b) => a + b.amount, 0);
+            const payouts = state.payments.filter(p => p.type === 'payout').reduce((a, b) => a + b.amount, 0);
+
+            document.getElementById('stat-total-arrecadado').innerText = contributions.toLocaleString() + ' Kz';
+            document.getElementById('stat-total-pago').innerText = payouts.toLocaleString() + ' Kz';
+            document.getElementById('stat-saldo-diferenca').innerText = (contributions - payouts).toLocaleString() + ' Kz';
+
+            const paidIds = state.payments.filter(p => p.type === 'payout').map(p => p.memberId);
+            const nextBen = state.members.find(m => !paidIds.includes(m.id));
+            document.getElementById('stat-proximo-beneficiario').innerText = nextBen ? nextBen.name :
+                'Rodada Completa';
+            document.getElementById('stat-fila-status').innerText =
+                `${paidIds.length} de ${state.members.length} membros já receberam`;
+
+            updateBranding();
+            renderMembers();
+            renderHistory();
+            updateDropdowns();
+            updateNotifUI();
+            lucide.createIcons();
+        }
+
+        function renderMembers() {
+            const tbody = document.getElementById('members-table-body');
+            const emptyMsg = document.getElementById('members-empty');
+            if (state.members.length === 0) {
+                tbody.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                tbody.innerHTML = state.members.map(m => `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td class="p-5 font-bold text-xs flex items-center gap-3">
+                            <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-[10px] font-black flex-shrink-0">
+                                ${m.name.charAt(0).toUpperCase()}
+                            </div>
+                            ${m.name}
+                        </td>
+                        <td class="p-5 text-right">
+                            <button onclick="deleteMember('${m.id}')" class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('payments-history-list');
+            const emptyMsg = document.getElementById('history-empty');
+            if (state.payments.length === 0) {
+                list.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                list.innerHTML = state.payments.slice().reverse().map(p => {
+                    const member = state.members.find(m => m.id === p.memberId);
+                    const isIn = p.type === 'contribution';
+                    return `
+                        <div class="flex justify-between items-center p-5 bg-white dark:bg-darkCard rounded-3xl border border-gray-100 dark:border-zinc-800 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 ${isIn ? 'bg-green-100 text-green-600' : 'bg-accent/10 text-accent'} rounded-2xl flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="${isIn ? 'arrow-down-left' : 'arrow-up-right'}" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="font-black text-xs">${member ? member.name : 'Ex-Membro'}</p>
+                                    <p class="text-[8px] text-gray-400 font-bold uppercase">${isIn ? 'Depósito de Cota' : 'Recebimento da Kixikila'}</p>
+                                </div>
+                            </div>
+                            <p class="font-black ${isIn ? 'text-primary' : 'text-accent'} text-sm whitespace-nowrap">${isIn ? '+' : '-'}${p.amount.toLocaleString()} Kz</p>
+                        </div>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            }
+        }
+
+        function updateNotifUI() {
+            const dot = document.getElementById('notif-dot');
+            dot.style.display = state.notifications.length > 0 ? 'block' : 'none';
+            const list = document.getElementById('notif-list');
+            list.innerHTML = state.notifications.length > 0 ?
+                state.notifications.map(n => `
+                    <div class="p-4 bg-gray-50 dark:bg-zinc-800 rounded-2xl border-l-4 border-primary">
+                        <p class="text-[9px] text-gray-400 font-bold">${n.time}</p>
+                        <p class="text-xs font-bold">${n.text}</p>
+                    </div>
+                `).join('') :
+                '<p class="text-center text-gray-400 text-xs py-8">✨ Nenhuma notificação no momento.</p>';
+        }
+
+        document.getElementById('member-form').onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('m-name').value.trim();
+            if (!name) return;
+            if (state.members.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+                showToast('Este membro já existe!');
+                return;
+            }
+            state.members.push({ id: 'm-' + Date.now(), name });
+            addNotification(`${name} entrou para o grupo.`);
+            closeModal('member-modal');
+            e.target.reset();
+            saveDB();
+            showToast('Membro registrado com sucesso!');
+        };
+
+        document.getElementById('payment-form').onsubmit = (e) => {
+            e.preventDefault();
+            const type = document.getElementById('pay-type').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const memberId = document.getElementById('pay-member').value;
+            if (!memberId) {
+                showToast('Selecione um membro!');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Digite um valor válido!');
+                return;
+            }
+            const member = state.members.find(m => m.id === memberId);
+            state.payments.push({ id: 'p-' + Date.now(), memberId, amount, type });
+            const label = type === 'contribution' ? 'depositou' : 'recebeu';
+            addNotification(`${member ? member.name : 'Alguém'} ${label} ${amount.toLocaleString()} Kz.`);
+            e.target.reset();
+            saveDB();
+            showSection('dashboard', document.querySelector('[data-section="dashboard"]'));
+            showToast('Operação registrada!');
+        };
+
+        function updateDropdowns() {
+            const select = document.getElementById('pay-member');
+            if (state.members.length === 0) {
+                select.innerHTML = '<option value="" disabled selected>Nenhum membro disponível</option>';
+            } else {
+                select.innerHTML = '<option value="" disabled selected>Quem está pagando/recebendo?</option>' +
+                    state.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            }
+        }
+
+        function saveDB() {
+            localStorage.setItem('kixikila_final_v2', JSON.stringify(state));
+            renderAll();
+        }
+
+        function loadDB() {
+            const db = localStorage.getItem('kixikila_final_v2');
+            if (db) {
+                try {
+                    const parsed = JSON.parse(db);
+                    state = { ...state, ...parsed };
+                    if (state.darkMode) document.documentElement.classList.add('dark');
+                } catch (e) {
+                    console.warn('Erro ao carregar dados, usando padrão.');
+                }
+            }
+            updateKixikilaInputs();
+            updateBranding();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function deleteMember(id) {
+            const member = state.members.find(m => m.id === id);
+            if (!member) return;
+            if (confirm(`Tem certeza que deseja remover "${member.name}"? Esta ação não pode ser desfeita.`)) {
+                state.members = state.members.filter(m => m.id !== id);
+                state.payments = state.payments.filter(p => p.memberId !== id);
+                addNotification(`${member.name} foi removido do grupo.`);
+                saveDB();
+                showToast('Membro removido.');
+            }
+        }
+
+        function clearNotifications() {
+            if (state.notifications.length === 0) return;
+            state.notifications = [];
+            saveDB();
+            showToast('Notificações limpas.');
+        }
+
+        function resetSystem() {
+            if (confirm(
+                    '⚠️ CUIDADO! Isso apagará TODOS os dados permanentemente.\n\nMembros, pagamentos, notificações e configurações serão perdidos.\n\nDeseja realmente continuar?'
+                    )) {
+                localStorage.removeItem('kixikila_final_v2');
+                state = {
+                    members: [],
+                    payments: [],
+                    notifications: [],
+                    darkMode: state.darkMode,
+                    kixikilaName: '',
+                    quotaValue: 5000
+                };
+                saveDB();
+                updateKixikilaInputs();
+                updateBranding();
+                showSection('dashboard', document.querySelector('[data-section="dashboard"]'));
+                showToast('Sistema reiniciado.');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            msgEl.innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(() => {
+                t.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
